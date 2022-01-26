@@ -24,6 +24,31 @@ impl PartialEq for Dollar {
     }
 }
 
+struct Franc {
+    amount: f32,
+}
+
+impl Franc {
+    pub fn new(value: f32) -> Franc {
+        Franc { amount: value }
+    }
+
+    pub fn times(&self, multiplier: f32) -> Franc {
+        Franc {
+            amount: &self.amount * multiplier,
+        }
+    }
+
+    pub fn equals(&self, other: &Dollar) -> bool {
+        self.amount == other.amount
+    }
+}
+
+impl PartialEq for Franc {
+    fn eq(&self, other: &Self) -> bool {
+        self.amount == other.amount
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -50,5 +75,12 @@ mod tests {
     fn test_trait_based_equality() {
         assert!(Dollar::new(5.0) == Dollar::new(5.0));
         assert!(Dollar::new(5.0) != Dollar::new(6.0));
+    }
+
+    #[test]
+    fn test_franc_multiplication() {
+        let five = Franc::new(5.0);
+        assert!(Franc::new(10.0) == five.times(2.0));
+        assert!(Franc::new(15.0) == five.times(3.0));
     }
 }
