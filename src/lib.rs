@@ -18,6 +18,12 @@ impl Dollar {
     }
 }
 
+impl PartialEq for Dollar {
+    fn eq(&self, other: &Self) -> bool {
+        self.amount == other.amount
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -40,5 +46,11 @@ mod tests {
     fn test_equality() {
         assert!(Dollar::new(5.0).equals(&Dollar::new(5.0)));
         assert!(!Dollar::new(5.0).equals(&Dollar::new(6.0)));
+    }
+
+    #[test]
+    fn test_trait_based_equality() {
+        assert!(Dollar::new(5.0) == Dollar::new(5.0));
+        assert!(Dollar::new(5.0) != Dollar::new(6.0));
     }
 }
