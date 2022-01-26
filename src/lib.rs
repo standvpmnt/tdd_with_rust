@@ -7,8 +7,10 @@ impl Dollar {
         Dollar { amount: value }
     }
 
-    pub fn times(&mut self, multiplier: f32) {
-        self.amount *= multiplier;
+    pub fn times(&self, multiplier: f32) -> Dollar {
+        Dollar {
+            amount: self.amount * multiplier,
+        }
     }
 }
 
@@ -23,8 +25,10 @@ mod tests {
     }
     #[test]
     fn test_multiplication() {
-        let mut five = Dollar::new(5.0);
-        five.times(2.0);
-        assert_eq!(10.0, five.amount)
+        let five = Dollar::new(5.0);
+        let product = five.times(2.0);
+        assert_eq!(10.0, product.amount);
+        let product = five.times(3.0);
+        assert_eq!(15.0, product.amount);
     }
 }
