@@ -36,10 +36,8 @@ mod tests {
     #[test]
     fn test_multiplication() {
         let five = Dollar::new(5.0);
-        let product = five.times(2.0);
-        assert_eq!(10.0, product.amount);
-        let product = five.times(3.0);
-        assert_eq!(15.0, product.amount);
+        assert!(Dollar::new(10.0) == five.times(2.0));
+        assert!(Dollar::new(15.0) == five.times(3.0));
     }
 
     #[test]
