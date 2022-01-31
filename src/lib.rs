@@ -4,7 +4,7 @@ struct Dollar {
 
 trait Money {
     fn amount(&self) -> f32;
-    fn equals(&self, other: &impl Money) -> bool {
+    fn equals(&self, other: &Self) -> bool {
         self.amount() == other.amount()
     }
 }
@@ -82,12 +82,17 @@ mod tests {
         assert!(!Dollar::new(5.0).equals(&Dollar::new(6.0)));
         assert!(Franc::new(5.0).equals(&Franc::new(5.0)));
         assert!(!Franc::new(5.0).equals(&Franc::new(6.0)));
+        assert!(
+            !Franc::new(5.0).equals(&Dollar::new(5.0)),
+            "Dollar and franc are not equal"
+        );
     }
 
     #[test]
     fn test_trait_based_equality() {
         assert!(Dollar::new(5.0) == Dollar::new(5.0));
         assert!(Dollar::new(5.0) != Dollar::new(6.0));
+        assert!(Dollar::new(5.0) != Franc::new(5.0));
     }
 
     #[test]
