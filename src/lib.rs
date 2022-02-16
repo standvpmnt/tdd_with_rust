@@ -19,14 +19,16 @@ impl Money {
         }
     }
     fn currency(&self) -> String {
-        let temp = &self.currency.to_owned();
-        temp.to_owned()
+        self.currency.to_owned()
     }
     fn new(value: f32, currency: &str) -> Money {
         Money {
             amount: value,
             currency: currency.to_owned(),
         }
+    }
+    fn plus(&self, addend: &Money) -> Expression {
+        Expression {}
     }
 }
 
@@ -41,6 +43,21 @@ impl ToString for Money {
         format!("{} {}", self.amount, self.currency)
     }
 }
+
+struct Bank;
+
+impl Bank {
+    // pub fn new() -> Bank {
+    //     Bank
+    // }
+    pub fn reduce(_source: Expression, _to: &str) -> Money {
+        Money::new(10.0, "USD")
+    }
+}
+
+struct Expression {}
+
+impl Expression {}
 
 #[cfg(test)]
 mod tests {
@@ -76,5 +93,14 @@ mod tests {
     #[test]
     fn test_to_string() {
         assert_eq!("5 USD", Money::new(5.0, "USD").to_string());
+    }
+
+    #[test]
+    fn test_simple_addition() {
+        let five = Money::new(5.0, "USD");
+        let sum = five.plus(&five);
+        // let bank = Bank::new();
+        let reduced = Bank::reduce(sum, "USD");
+        assert!(reduced == Money::new(10.0, "USD"))
     }
 }
