@@ -35,11 +35,17 @@ impl Dollar {
     }
 }
 
-// impl PartialEq for Dollar {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.amount == other.amount
-//     }
-// }
+impl PartialEq for Money {
+    fn eq(&self, other: &Self) -> bool {
+        self.amount == other.amount && self.currency == other.currency
+    }
+}
+
+impl ToString for Money {
+    fn to_string(&self) -> String {
+        format!("{} {}", self.amount, self.currency)
+    }
+}
 
 struct Franc;
 
@@ -52,12 +58,6 @@ impl Franc {
     }
 }
 
-// impl PartialEq for Franc {
-//     fn eq(&self, other: &Self) -> bool {
-//         self.amount == other.amount
-//     }
-// }
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -65,7 +65,7 @@ mod tests {
     #[test]
     fn test_multiplication() {
         let five = Dollar::new(5.0);
-        assert!(Dollar::new(10.0).equals(&five.times(2.0)));
+        assert!(Dollar::new(10.0) == five.times(2.0));
         assert!(Dollar::new(15.0).equals(&five.times(3.0)));
     }
 
@@ -82,11 +82,11 @@ mod tests {
     }
 
     #[test]
-    // fn test_trait_based_equality() {
-    //     assert!(Dollar::new(5.0) == Dollar::new(5.0));
-    //     assert!(Dollar::new(5.0) != Dollar::new(6.0));
-    // assert!(Dollar::new(5.0) != Franc::new(5.0));
-    // }
+    fn test_trait_based_equality() {
+        assert!(Dollar::new(5.0) == Dollar::new(5.0));
+        assert!(Dollar::new(5.0) != Dollar::new(6.0));
+        assert!(Dollar::new(5.0) != Franc::new(5.0));
+    }
     #[test]
     fn test_franc_multiplication() {
         let five = Franc::new(5.0);
@@ -98,5 +98,10 @@ mod tests {
     fn test_currency() {
         assert_eq!("USD", Dollar::new(5.0).currency());
         assert_eq!("CHF", Franc::new(5.0).currency());
+    }
+
+    #[test]
+    fn test_to_string() {
+        assert_eq!("5 USD", Dollar::new(5.0).to_string());
     }
 }
