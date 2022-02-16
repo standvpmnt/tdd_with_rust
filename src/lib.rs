@@ -1,5 +1,8 @@
+#![allow(dead_code)]
+
 struct Dollar {
     amount: f32,
+    currency: String,
 }
 
 trait Money {
@@ -8,6 +11,7 @@ trait Money {
         self.amount() == other.amount()
     }
     fn times(&self, multiplier: f32) -> Self;
+    fn currency(&self) -> String;
 }
 
 impl Money for Dollar {
@@ -17,18 +21,19 @@ impl Money for Dollar {
     fn times(&self, multiplier: f32) -> Dollar {
         Dollar {
             amount: &self.amount * multiplier,
+            currency: "USD".to_owned(),
         }
+    }
+    fn currency(&self) -> String {
+        "USD".to_owned()
     }
 }
 
 impl Dollar {
     pub fn new(value: f32) -> Dollar {
-        Dollar { amount: value }
-    }
-
-    pub fn times(&self, multiplier: f32) -> Dollar {
         Dollar {
-            amount: &self.amount * multiplier,
+            amount: value,
+            currency: "USD".to_owned(),
         }
     }
 }
@@ -41,6 +46,7 @@ impl PartialEq for Dollar {
 
 struct Franc {
     amount: f32,
+    currency: String,
 }
 
 impl Money for Franc {
@@ -50,18 +56,19 @@ impl Money for Franc {
     fn times(&self, multiplier: f32) -> Franc {
         Franc {
             amount: &self.amount * multiplier,
+            currency: "CHF".to_owned(),
         }
+    }
+    fn currency(&self) -> String {
+        "CHF".to_owned()
     }
 }
 
 impl Franc {
     pub fn new(value: f32) -> Franc {
-        Franc { amount: value }
-    }
-
-    pub fn times(&self, multiplier: f32) -> Franc {
         Franc {
-            amount: &self.amount * multiplier,
+            amount: value,
+            currency: "CHF".to_owned(),
         }
     }
 }
@@ -75,11 +82,6 @@ impl PartialEq for Franc {
 mod tests {
     use super::*;
 
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
     #[test]
     fn test_multiplication() {
         let five = Dollar::new(5.0);
@@ -111,5 +113,11 @@ mod tests {
         let five = Franc::new(5.0);
         assert!(Franc::new(10.0) == five.times(2.0));
         assert!(Franc::new(15.0) == five.times(3.0));
+    }
+
+    #[test]
+    fn test_currency() {
+        assert_eq!("USD", Dollar::new(5.0).currency());
+        assert_eq!("CHF", Franc::new(5.0).currency());
     }
 }
