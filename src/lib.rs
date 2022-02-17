@@ -29,7 +29,7 @@ impl Money {
             currency: currency.to_owned(),
         }
     }
-    fn plus(&self, addend: &Money) -> Sum {
+    fn plus(&self, addend: &Money) -> Sum<Money> {
         Sum {
             addend: Money::new(self.amount(), &self.currency()),
             augend: Money::new(addend.amount(), &addend.currency()),
@@ -49,20 +49,20 @@ impl ToString for Money {
     }
 }
 
-struct Sum {
-    augend: Money,
-    addend: Money,
+struct Sum<T> {
+    augend: T,
+    addend: T,
 }
 
-impl Sum {
-    pub fn new(augend: Money, addend: Money) -> Sum {
+impl<T: Expression> Sum<T> {
+    pub fn new(augend: T, addend: T) -> Sum<T> {
         Sum { addend, augend }
     }
 }
-impl Expression for Sum {
-    fn reduce(&self, to: &str, _bank: &Bank) -> Money {
+impl<T: Expression> Expression for Sum<T> {
+    fn reduce(&self, to: &str, bank: &Bank) -> Money {
         Money {
-            amount: self.addend.amount() + self.augend.amount(),
+            amount: self.addend.reduce(to, bank).amount() + self.augend.reduce(to, bank).amount(),
             currency: to.to_owned(),
         }
     }
@@ -159,7 +159,7 @@ mod tests {
     fn test_plus_returns_sum() {
         let five = Money::new(5.0, "USD");
         let result = five.plus(&five);
-        let sum: Sum = result;
+        let sum = result;
         assert!(five == sum.augend);
         assert!(five == sum.addend);
     }
@@ -190,5 +190,15 @@ mod tests {
     #[test]
     fn test_identity_rate() {
         assert!(1.0 == Bank::new().rate("USD", "USD"))
+    }
+
+    #[test]
+    fn test_mixed_addition() {
+        let five_bucks = Money::new(5.0, "USD");
+        let ten_francs = Money::new(10.0, "CHF");
+        let mut bank = Bank::new();
+        bank.add_rate("CHF", "USD", 2.0);
+        let result = bank.reduce(five_bucks.plus(&ten_francs), "USD");
+        assert!(Money::new(10.0, "USD") == result);
     }
 }
