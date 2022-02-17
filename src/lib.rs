@@ -27,8 +27,11 @@ impl Money {
             currency: currency.to_owned(),
         }
     }
-    fn plus(&self, addend: &Money) -> Expression {
-        Expression {}
+    fn plus(&self, addend: &Money) -> Sum {
+        Sum {
+            addend: Money::new(self.amount(), &self.currency()),
+            augend: Money::new(addend.amount(), &addend.currency()),
+        }
     }
 }
 
@@ -47,17 +50,41 @@ impl ToString for Money {
 struct Bank;
 
 impl Bank {
-    // pub fn new() -> Bank {
-    //     Bank
-    // }
-    pub fn reduce(_source: Expression, _to: &str) -> Money {
-        Money::new(10.0, "USD")
+    pub fn reduce<T: Expression>(source: T, to: &str) -> Money {
+        source.reduce(to)
     }
 }
 
-struct Expression {}
+trait Expression {
+    fn reduce(&self, to: &str) -> Money;
+}
 
-impl Expression {}
+struct Sum {
+    augend: Money,
+    addend: Money,
+}
+
+impl Sum {
+    pub fn new(augend: Money, addend: Money) -> Sum {
+        Sum { addend, augend }
+    }
+}
+impl Expression for Sum {
+    fn reduce(&self, to: &str) -> Money {
+        Money {
+            amount: self.addend.amount() + self.augend.amount(),
+            currency: to.to_owned(),
+        }
+    }
+}
+impl Expression for Money {
+    fn reduce(&self, to: &str) -> Money {
+        Money {
+            amount: self.amount(),
+            currency: to.to_owned(),
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -102,5 +129,24 @@ mod tests {
         // let bank = Bank::new();
         let reduced = Bank::reduce(sum, "USD");
         assert!(reduced == Money::new(10.0, "USD"))
+    }
+
+    fn test_plus_returns_sum() {
+        let five = Money::new(5.0, "USD");
+        let result = five.plus(&five);
+        let sum: Sum = result;
+        assert!(five == sum.augend);
+        assert!(five == sum.addend);
+    }
+
+    fn test_reduce_sum() {
+        let sum = Sum::new(Money::new(3.0, "USD"), Money::new(4.0, "USD"));
+        let result = Bank::reduce(sum, "USD");
+        assert!(Money::new(7.0, "USD") == result);
+    }
+
+    fn test_reduce_money() {
+        let result = Bank::reduce(Money::new(1.0, "USD"), "USD");
+        assert!(Money::new(1.0, "USD") == result)
     }
 }
