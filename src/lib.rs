@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use std::collections::HashMap;
+
 struct Money {
     amount: f32,
     currency: String,
@@ -47,18 +49,6 @@ impl ToString for Money {
     }
 }
 
-struct Bank;
-
-impl Bank {
-    pub fn reduce<T: Expression>(source: T, to: &str) -> Money {
-        source.reduce(to)
-    }
-}
-
-trait Expression {
-    fn reduce(&self, to: &str) -> Money;
-}
-
 struct Sum {
     augend: Money,
     addend: Money,
@@ -70,7 +60,7 @@ impl Sum {
     }
 }
 impl Expression for Sum {
-    fn reduce(&self, to: &str) -> Money {
+    fn reduce(&self, to: &str, _bank: &Bank) -> Money {
         Money {
             amount: self.addend.amount() + self.augend.amount(),
             currency: to.to_owned(),
@@ -78,12 +68,46 @@ impl Expression for Sum {
     }
 }
 impl Expression for Money {
-    fn reduce(&self, to: &str) -> Money {
+    fn reduce(&self, to: &str, bank: &Bank) -> Money {
+        let rate = bank.rate(&self.currency(), to);
         Money {
-            amount: self.amount(),
+            amount: self.amount() / rate,
             currency: to.to_owned(),
         }
     }
+}
+
+struct Bank {
+    rates: HashMap<String, f32>,
+}
+
+impl Bank {
+    pub fn new() -> Bank {
+        Bank {
+            rates: HashMap::new(),
+        }
+    }
+    pub fn reduce<T: Expression>(&self, source: T, to: &str) -> Money {
+        source.reduce(to, &self)
+    }
+
+    pub fn add_rate(&mut self, currency: &str, to: &str, rate: f32) {
+        if !currency.eq(to) {
+            self.rates.insert(format!("{}{}", currency, to), rate);
+        }
+    }
+
+    pub fn rate(&self, from: &str, to: &str) -> f32 {
+        if from.eq(to) {
+            1.0
+        } else {
+            self.rates.get(&format!("{}{}", from, to)).unwrap().clone()
+        }
+    }
+}
+
+trait Expression {
+    fn reduce(&self, to: &str, bank: &Bank) -> Money;
 }
 
 #[cfg(test)]
@@ -126,11 +150,12 @@ mod tests {
     fn test_simple_addition() {
         let five = Money::new(5.0, "USD");
         let sum = five.plus(&five);
-        // let bank = Bank::new();
-        let reduced = Bank::reduce(sum, "USD");
+        let bank = Bank::new();
+        let reduced = bank.reduce(sum, "USD");
         assert!(reduced == Money::new(10.0, "USD"))
     }
 
+    #[test]
     fn test_plus_returns_sum() {
         let five = Money::new(5.0, "USD");
         let result = five.plus(&five);
@@ -139,14 +164,31 @@ mod tests {
         assert!(five == sum.addend);
     }
 
+    #[test]
     fn test_reduce_sum() {
+        let bank = Bank::new();
         let sum = Sum::new(Money::new(3.0, "USD"), Money::new(4.0, "USD"));
-        let result = Bank::reduce(sum, "USD");
+        let result = bank.reduce(sum, "USD");
         assert!(Money::new(7.0, "USD") == result);
     }
 
+    #[test]
     fn test_reduce_money() {
-        let result = Bank::reduce(Money::new(1.0, "USD"), "USD");
+        let bank = Bank::new();
+        let result = bank.reduce(Money::new(1.0, "USD"), "USD");
         assert!(Money::new(1.0, "USD") == result)
+    }
+
+    #[test]
+    fn test_reduce_money_different_currency() {
+        let mut bank = Bank::new();
+        bank.add_rate("CHF", "USD", 2.0);
+        let result = bank.reduce(Money::new(2.0, "CHF"), "USD");
+        assert!(Money::new(1.0, "USD") == result)
+    }
+
+    #[test]
+    fn test_identity_rate() {
+        assert!(1.0 == Bank::new().rate("USD", "USD"))
     }
 }
