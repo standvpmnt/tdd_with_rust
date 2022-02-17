@@ -88,7 +88,7 @@ impl Bank {
         }
     }
     pub fn reduce<T: Expression>(&self, source: T, to: &str) -> Money {
-        source.reduce(to, &self)
+        source.reduce(to, self)
     }
 
     pub fn add_rate(&mut self, currency: &str, to: &str, rate: f32) {
@@ -101,7 +101,7 @@ impl Bank {
         if from.eq(to) {
             1.0
         } else {
-            self.rates.get(&format!("{}{}", from, to)).unwrap().clone()
+            *self.rates.get(&format!("{}{}", from, to)).unwrap()
         }
     }
 }
@@ -201,4 +201,10 @@ mod tests {
         let result = bank.reduce(five_bucks.plus(&ten_francs), "USD");
         assert!(Money::new(10.0, "USD") == result);
     }
+
+    // #[test]
+    // fn test_plus_same_currency_returns_money() {
+    //     let sum = Money::new(1.0, "USD").plus(&Money::new(1.0, "USD"));
+    //     assert!(sum == Money::new(2.0, "USD"));
+    // }
 }
